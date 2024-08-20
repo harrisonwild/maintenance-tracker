@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 
+
 export default function TaskForm() {
   const [taskInput, setTaskInput] = useState('');
   const [customerNameInput, setCustomerNameInput] = useState('');
   const [customerEmailInput, setCustomerEmailInput] = useState('');
   const [customerPhoneInput, setCustomerPhoneInput] = useState('');
-  const [receiveDateInput, setReceiveDateInput] = useState(''); 
+  const [receiveDateInput, setReceiveDateInput] = useState('');
   const [priorityInput, setPriorityInput] = useState('');
   const [productColorInput, setProductColorInput] = useState('');
   const [productBrandInput, setProductBrandInput] = useState('');
@@ -33,7 +34,7 @@ export default function TaskForm() {
   }
 
   // Add a task to the list
-  function addTask() {
+  async function addTask() {
     // Input validation
     if (taskInput === '') {
       alert('Please enter a task description.');
@@ -76,7 +77,7 @@ export default function TaskForm() {
       customerName: customerNameInput,
       customerEmail: customerEmailInput,
       customerPhone: customerPhoneInput,
-      receiveDate: receiveDateInput,
+      receiveDate: new Date(receiveDateInput),
       priority: priorityInput,
       productColor: productColorInput,
       productBrand: productBrandInput,
@@ -85,26 +86,57 @@ export default function TaskForm() {
       completed: false,
     };
 
-    setTasks([...tasks, taskItem]);
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(taskItem),
+      });
 
-    // Clear inputs
-    setTaskInput('');
-    setCustomerNameInput('');
-    setCustomerEmailInput('');
-    setCustomerPhoneInput('');
-    setReceiveDateInput('');
-    setPriorityInput('');
-    setProductColorInput('');
-    setProductBrandInput('');
-    setProductTypeInput('');
-    setProblemFoundInput('');
+      if (!response.ok) {
+        throw new Error('Failed to add task');
+      }
+
+      const newTask = await response.json();
+      setTasks([...tasks, newTask]);
+
+      // Clear inputs
+      setTaskInput('');
+      setCustomerNameInput('');
+      setCustomerEmailInput('');
+      setCustomerPhoneInput('');
+      setReceiveDateInput('');
+      setPriorityInput('');
+      setProductColorInput('');
+      setProductBrandInput('');
+      setProductTypeInput('');
+      setProblemFoundInput('');
+    } catch (error) {
+      console.error('Error adding task:', error);
+      alert('There was an error adding the task. Please try again.');
+    }
   }
 
   // Mark a task as completed
-  function markCompleted(index) {
+  async function markCompleted(index) {
     const newTasks = [...tasks];
     newTasks[index].completed = !newTasks[index].completed;
     setTasks(newTasks);
+
+    const response = await fetch('/api/tasks', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newTasks),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to add task');
+    }
+
   }
 
   // Delete a task from the list
@@ -288,7 +320,7 @@ export default function TaskForm() {
       <footer className="footer">
         <div className="social-links">
           <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
-            <img src="/icons/twitter-icon.png" alt="Twitter" />
+            <img src="" alt="Twitter" />
           </a>
           <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
             <img src="/icons/facebook-icon.png" alt="Facebook" />

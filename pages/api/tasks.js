@@ -1,6 +1,5 @@
-// pages/api/tasks.js
-
 import { PrismaClient } from '@prisma/client';
+import sendEmail from '../../components/SendMail'; // Import your email sending utility
 
 const prisma = new PrismaClient();
 
@@ -19,12 +18,41 @@ export default async function handler(req, res) {
       res.status(201).json(newTask);
       break;
     case 'PUT':
-      // Update a task
-      const { id, ...updatedData } = req.body;
+
+      console.log('req.body in PUT', req.body)
+     
+      let updatedData = req.body[0];
+      let task = req.body[0]
+      let id = req.body[0].id;
+      let customerName = req.body[0].customerName;
+      let customerEmail = req.body[0].customerEmail;
+      let completed = req.body[0].completed;
+
+
+      // Update the task in the database
       const updatedTask = await prisma.task.update({
         where: { id: Number(id) },
-        data: updatedData,
+        data: { ...updatedData, completed },
       });
+      console.log(completed)
+
+      // Send email notification if the task is marked as completed
+      if (completed) {
+        const task = await prisma.task.findUnique({ where: { id: Number(id) } });
+        const emailData = {
+          to: customerEmail,
+          subject: 'Task Completed',
+          message: `Dear ${customerName},\n\nYour task: "${task.task}" has been marked as completed.`,
+        };
+
+        try {
+          await sendEmail(emailData.to, emailData.subject, emailData.message);
+          console.log('Email sent successfully');
+        } catch (error) {
+          console.error('Error sending email:', error);
+        }
+      }
+
       res.status(200).json(updatedTask);
       break;
     case 'DELETE':

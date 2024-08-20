@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import TaskForm from '../components/TaskForm';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function Home() {
   return (
